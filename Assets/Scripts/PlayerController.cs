@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(AudioSource))]
 public class PlayerController : MonoBehaviour
 {
     private float h = 0.0f;
@@ -12,9 +13,12 @@ public class PlayerController : MonoBehaviour
     private float moveSpeed = 10.0f;
     private Transform playerTransform;
     private int key = 0;
+    public AudioClip keySfx;
+    private AudioSource audioSource;
     void Start()
     {
         playerTransform = GetComponent<Transform>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     
@@ -36,6 +40,7 @@ public class PlayerController : MonoBehaviour
             Destroy(collision.gameObject);
             key += 1;
             Debug.Log("Key collected! Total keys: " + key);
+            audioSource.PlayOneShot(keySfx, 1.0f);
         }
 
         if(collision.gameObject.tag == "Box")
