@@ -2,35 +2,37 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
 
 [RequireComponent(typeof(AudioSource))]
 public class PlayerController : MonoBehaviour
 {
-    private float h = 0.0f;
-    private float v = 0.0f;
-    private float r = 0.0f;
-    private float rotationSpeed = 100.0f;
-    private float moveSpeed = 10.0f;
-    private Transform playerTransform;
     private int key = 0;
     public AudioClip keySfx;
     private AudioSource audioSource;
-    void Start()
+
+    public GameObject clearPanelObj;
+
+    // XR 컨트롤러 입력용
+    public ContinuousMoveProvider moveProvider; // XR Origin에 붙어있는 컴포넌트
+    
+
+    private void Start()
     {
-        playerTransform = GetComponent<Transform>();
         audioSource = GetComponent<AudioSource>();
+
+        if (clearPanelObj != null)
+        {
+            clearPanelObj.SetActive(false); // 시작 시 비활성화
+        }
     }
 
-    
+
     void Update()
     {
-        h = Input.GetAxis("Horizontal");
-        v = Input.GetAxis("Vertical");
-        r = Input.GetAxis("Mouse X");
-
-        //Debug.Log("Horizontal: " + h.ToString() + ", Vertical: " + v.ToString());
-        playerTransform.Translate(new Vector3(h, 0, v) * moveSpeed * Time.deltaTime);
-        playerTransform.Rotate(new Vector3(0, r, 0) * rotationSpeed * Time.deltaTime);
+        
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -43,7 +45,7 @@ public class PlayerController : MonoBehaviour
             audioSource.PlayOneShot(keySfx, 1.0f);
         }
 
-        if(collision.gameObject.tag == "Box")
+        if(collision.gameObject.tag == "door")
         {
             if (key < 3)
             {
@@ -52,8 +54,25 @@ public class PlayerController : MonoBehaviour
             else
             {
                 Debug.Log("탈출성공!");
-                Destroy(collision.gameObject);
+                ShowClearPanel();
             }
         }
+    }
+    private void ShowClearPanel()
+    {
+        if (clearPanelObj != null)
+        {
+            clearPanelObj.SetActive(true);
+            Invoke("QuitGame", 2.0f); // 2초 후 게임 종료
+        }
+    }
+
+    private void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false; // 에디터에서는 Play 모드 종료
+#else
+        Application.Quit(); // 빌드된 게임에서는 종료
+#endif
     }
 }
